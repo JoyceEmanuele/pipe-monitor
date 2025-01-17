@@ -27,7 +27,6 @@ WORKDIR /app
 
 # Copiar o binário compilado da stage anterior
 COPY --from=builder /app/target/release/broker-devel-gateway .
-COPY --from=builder /app/certs /app/certs
 COPY --from=builder /app/configfile.json5 .
 
 RUN apt-get update \
