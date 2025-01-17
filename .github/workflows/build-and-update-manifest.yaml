@@ -61,6 +61,13 @@ jobs:
           sed -i "s|image: gcr.io/.*/monitor.*|image: gcr.io/$GCP_PROJECT_ID/monitor-teste:${IMAGE_TAG}|g" manifest-repo/monitor/deployment.yaml
           sed -i "s|image: gcr.io/.*/monitor.*|image: gcr.io/$GCP_PROJECT_ID/monitordev-teste:${IMAGE_TAG}|g" manifest-repo/monitor-dev/deployment.yaml
 
+      - name: Install JSON5 Library
+        run: pip install json5
+        
+      - name: Merge Config Files
+        run: |
+          python devops/merge_configfiles.py configfile_example.json5 manifest-repo/broker2dynamo/configfile.yaml
+
       - name: Commit and Push Manifest Update
         working-directory: manifest-repo
         run: |
