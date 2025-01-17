@@ -1,0 +1,14 @@
+[Unit]
+Description=Development gateway for the brokers
+
+[Service]
+Type=simple
+User=diel
+LimitNOFILE=4096
+WorkingDirectory=/home/diel/broker-connections-gateway
+ExecStart=/home/diel/broker-connections-gateway/broker-devel-gateway
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+/target
+/certs
+/local_data
+/log
+/configfile.json5

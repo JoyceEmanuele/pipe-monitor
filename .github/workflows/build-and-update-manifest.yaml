@@ -1,0 +1,70 @@
+# .github/workflows/build-and-update-manifest.yaml
+name: Build and Update Manifest
+
+on:
+  push:
+    branches:
+      - main  # Execute ao fazer push na branch principal
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Configure Docker to use Google Cloud Registry
+        run: |
+          gcloud auth configure-docker
+
+      - name: Build and Push Docker Image
+        env:
+          IMAGE_TAG: "v${{ github.run_number }}"  # Define a tag única para cada build
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          cp configfile_example.json5 configfile.json5
+          docker build -t gcr.io/$GCP_PROJECT_ID/monitor-teste:${IMAGE_TAG} -f Dockerfile .
+          docker push gcr.io/$GCP_PROJECT_ID/monitor-teste:${IMAGE_TAG}
+          docker image rm  gcr.io/$GCP_PROJECT_ID/monitor-teste:${IMAGE_TAG}
+          docker build -t gcr.io/$GCP_PROJECT_ID/monitordev-teste:${IMAGE_TAG} -f Dockerfile.devel .
+          docker push gcr.io/$GCP_PROJECT_ID/monitordev-teste:${IMAGE_TAG}
+          docker image rm  gcr.io/$GCP_PROJECT_ID/monitordev-teste:${IMAGE_TAG}
+
+      - name: Checkout Manifest Repository
+        uses: actions/checkout@v2
+        with: 
+          repository: dielenergia/manifests-kubernetes # Nome do repositório de manifestos
+          token: ${{ secrets.GIT_TOKEN }}
+          path: manifest-repo
+
+      - name: List Manifest Repository Files
+        run: ls -R manifest-repo
+
+      - name: Check Git Status
+        working-directory: manifest-repo
+        run: git status
+
+      - name: Update Deployment Manifest
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          IMAGE_TAG: "v${{ github.run_number }}"
+        run: |
+          sed -i "s|image: gcr.io/.*/monitor.*|image: gcr.io/$GCP_PROJECT_ID/monitor-teste:${IMAGE_TAG}|g" manifest-repo/monitor/deployment.yaml
+          sed -i "s|image: gcr.io/.*/monitor.*|image: gcr.io/$GCP_PROJECT_ID/monitordev-teste:${IMAGE_TAG}|g" manifest-repo/monitor-dev/deployment.yaml
+
+      - name: Commit and Push Manifest Update
+        working-directory: manifest-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "Atualiza a imagem para a versão $IMAGE_TAG"
+          git push

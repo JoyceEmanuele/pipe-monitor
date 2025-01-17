@@ -1,0 +1,31 @@
+{
+  // Porta por onde vão chegar as conexões dos dispositivos:
+  "LISTEN_SOCKET": "0.0.0.0:8883",
+
+  // Quando chega uma conexão de dispositivo ela será encaminhada para um destes brokers:
+  "BROKERS": [
+    { "host": "127.0.0.1", "port": 1883 },
+    // { "host": "broker1.lan.dielenergia.com", "port": 1883 },
+  ],
+
+  // Configuração usada somente em produção.
+  // Como o broker não fica acessível para os desenvolvedores, foi criado o serviço broker-devel-gateway
+  // que aceita conexões nestas portas para uso exclusivo dos desenvolvedores. Se for usado, deve existir
+  // uma linha para cada broker configurado acima.
+  "LISTEN_SOCKETS_DEVEL": [
+    "0.0.0.0:18001",
+    // "0.0.0.0:18003",
+  ],
+
+  // API HTTP que o broker-connections-gateway disponibiliza para responder health-check e estatísticas de funcionamento.
+  "LISTEN_HTTP_API": "0.0.0.0:46882",
+
+  // O broker-connections-gateway avisa para esta instância do API-Server que ele está operando
+  "STATS_SERVER_HTTP": "127.0.0.1:46101",
+
+  // Certificado TLS oferecido pelo monitor aos dispositivos referente ao endereço do broker (broker.dielenergia.com)
+  "CERT_PATH": "./certs/broker-server.public_cert.pem",
+  "KEY_PATH": "./certs/broker-server.private_key.pem",
+  // Certificado CA da Diel que foi usado para assinar os certificados de cliente que os dispositivos enviam para o broker
+  "CA_PATH": "./certs/ca_public_cert.pem",
+}

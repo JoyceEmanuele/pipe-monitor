@@ -1,0 +1,14 @@
+[Unit]
+Description=Gateway for the brokers
+
+[Service]
+Type=simple
+User=diel
+LimitNOFILE=128000
+WorkingDirectory=/home/diel/broker-connections-gateway
+ExecStart=/home/diel/broker-connections-gateway/broker-connections-gateway
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
